@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create New Topic</title>
+    <link rel="stylesheet" href="styles/common.css" />
+    <link rel="stylesheet" href="styles/create.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Daily Visual Tracker</h1>
+    </header>
+
+    <nav>
+        <a href="home.html">Home</a>
+        <a href="record.html">Record</a>
+        <a href="create.html">Create</a>
+        <a href="topics.html">Topics</a>
+        <a href="history.html">History</a>
+    </nav>
+    <div class="line"></div>
+
+    <form method="post" action="">
+      <div><h1>Create New Topic</h1></div>
+      <div class="topicForm">
+        <label for="topicName">Topic Name: </label>
+        <input type="text" id="topicName" maxlength="100" required />
+      </div>
+
+      <div id="levelsContainer">
+        <div class="level">
+          <label>Level: </label>
+          <input
+            type="text"
+            maxlength="100"
+            placeholder="Level 1"
+            name="levelName1"
+          />
+          <span>Color:</span>
+          <input type="color" name="levelColor1" />
+        </div>
+      </div>
+
+      <div class="add-btn" id="addLevel">+</div>
+      <button type="submit" class="submit-btn">CREATE</button>
+    </form>
+
+    <script>
+      const levelsContainer = document.getElementById("levelsContainer");
+      const addLevelBtn = document.getElementById("addLevel");
+      let levelCount = 1;
+
+      addLevelBtn.addEventListener("click", () => {
+        levelCount++;
+        const levelDiv = document.createElement("div");
+        levelDiv.className = "level";
+        levelDiv.innerHTML = `
+            <label>Level:</label>
+            <input type="text" maxlength="100" placeholder="Level ${levelCount}" name="levelName${levelCount}" />
+            <span>Color:</span>
+            <input type="color" name="levelColor${levelCount}" />`;
+        levelsContainer.appendChild(levelDiv);
+      });
+
+      form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const topicName = document.getElementById("topicName").value.trim();
+      const levels = [];
+
+      for (let i = 1; i <= levelCount; i++) {
+        const nameInput = form.querySelector(`[name="levelName${i}"]`);
+        const colorInput = form.querySelector(`[name="levelColor${i}"]`);
+        if (nameInput && nameInput.value.trim()) {
+          levels.push({
+            name: nameInput.value.trim(),
+            color: colorInput.value
+          });
+        }
+      }
+
+      const newTopic = { name: topicName, levels: levels };
+      const topics = JSON.parse(localStorage.getItem("topics") || "[]");
+      topics.push(newTopic);
+      localStorage.setItem("topics", JSON.stringify(topics));
+      alert("Topic created!");
+      form.reset();
+      levelsContainer.innerHTML = ''; // clear levels
+      levelCount = 1;
+      addLevelBtn.click(); // add default level
+    });
+
+    // Add initial level if not present
+    if (levelsContainer.children.length === 0) addLevelBtn.click();
+    </script>
+  </body>
+</html>

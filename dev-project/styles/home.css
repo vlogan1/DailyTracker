@@ -1,0 +1,29 @@
+.welcome{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 5em;
+    letter-spacing: 0.01mm;
+}
+.link-btn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap:20px;
+}
+.link{
+    border: 1px solid black;
+    font-size: 40px;
+    border-radius: 50px;
+    padding:20px;
+    width:500px;
+    text-decoration: none;
+    text-align: center;
+}
+a{
+    color:black;
+}
+a:hover{
+    background-color: lightgray;
+}
