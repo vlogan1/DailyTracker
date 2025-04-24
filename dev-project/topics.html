@@ -1,24 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manage Your Topics</title>
     <link rel="stylesheet" href="styles/common.css" />
-</head>
-<body>
+    <link rel="stylesheet" href="styles/topics.css">
+  </head>
+  <body>
     <header>
-        <h1>Manage Your Topics</h1>
-      </header>
-  
-      <nav>
-        <a href="home.html">Home</a>
-        <a href="record.html">Record</a>
-        <a href="create.html">Create</a>
-        <a href="topics.html">Topics</a>
-        <a href="history.html">History</a>
-      </nav>
-      <div class="line"></div>
+      <h1>Manage Your Topics</h1>
+    </header>
 
-</body>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="record.html">Record</a>
+      <a href="create.html">Create</a>
+      <a href="topics.html">Topics</a>
+      <a href="history.html">History</a>
+    </nav>
+    <div class="line"></div>
+
+    <div><h1>Your Topics</h1></div>
+    <div id="topicsContainer"></div>
+
+    <!-- AI helps -->
+    <script>
+      fetch("data/topics.json")
+        .then((res) => res.json())
+        .then((topics) => renderTopics(topics))
+        .catch((err) => console.error("Error loading topics:", err));
+
+      function renderTopics(topics) {
+        const container = document.getElementById("topicsContainer");
+        container.innerHTML = "";
+
+        topics.forEach((topic, index) => {
+          const topicDiv = document.createElement("div");
+          topicDiv.className = "topic-item";
+
+          const header = document.createElement("div");
+          header.className = "topic-header";
+          header.innerHTML = `<strong>${topic.name}</strong>`;
+
+          const levels = document.createElement("ul");
+          topic.levels.forEach((level) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<span style="background:${level.color};width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:5px;"></span> ${level.name}`;
+            levels.appendChild(li);
+          });
+
+          const actions = document.createElement("div");
+          actions.className = "topic-actions";
+          actions.innerHTML = `
+            <button disabled>Rename</button>
+            <button disabled>Delete</button>
+          `;
+
+          topicDiv.appendChild(header);
+          topicDiv.appendChild(levels);
+          topicDiv.appendChild(actions);
+          container.appendChild(topicDiv);
+        });
+      }
+    </script>
+  </body>
 </html>

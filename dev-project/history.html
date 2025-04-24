@@ -1,24 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>View History</title>
     <link rel="stylesheet" href="styles/common.css" />
-</head>
-<body>
+    <link rel="stylesheet" href="styles/history.css" />
+  </head>
+  <body>
     <header>
-        <h1>View History</h1>
-      </header>
-  
-      <nav>
-        <a href="home.html">Home</a>
-        <a href="record.html">Record</a>
-        <a href="create.html">Create</a>
-        <a href="topics.html">Topics</a>
-        <a href="history.html">History</a>
-      </nav>
-      <div class="line"></div>
+      <h1>View History</h1>
+    </header>
 
-</body>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="record.html">Record</a>
+      <a href="create.html">Create</a>
+      <a href="topics.html">Topics</a>
+      <a href="history.html">History</a>
+    </nav>
+    <div class="line"></div>
+
+    <div><h1>View Your History</h1></div>
+    <div id="historyContainer"></div>
+
+    <!-- AI helps -->
+    <script>
+      let topicsMap = {};
+
+      Promise.all([
+        fetch("data/topics.json").then((res) => res.json()),
+        fetch("data/records.json").then((res) => res.json()),
+      ])
+        .then(([topics, records]) => {
+          topics.forEach((topic) => {
+            topicsMap[topic.name] = {};
+            topic.levels.forEach((level) => {
+              topicsMap[topic.name][level.name] = level.color;
+            });
+          });
+          renderHistory(records);
+        })
+        .catch((err) => console.error("Error loading history:", err));
+
+      function renderHistory(records) {
+        const container = document.getElementById("historyContainer");
+
+        Object.entries(records).forEach(([date, entries]) => {
+          const section = document.createElement("div");
+          section.className = "history-day";
+          section.innerHTML = `<h3>${date}</h3>`;
+
+          entries.forEach((entry) => {
+            const color = topicsMap[entry.topic]?.[entry.level] || "#ccc";
+            section.innerHTML += `
+              <div class="history-entry">
+                <strong>${entry.topic}</strong>: 
+                <span class="level-badge" style="background-color: ${color}">${entry.level}</span>
+              </div>`;
+          });
+
+          container.appendChild(section);
+        });
+      }
+      const topics = JSON.parse(localStorage.getItem("topics") || "[]");
+    </script>
+  </body>
 </html>
