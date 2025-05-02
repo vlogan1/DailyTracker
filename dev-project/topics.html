@@ -24,14 +24,10 @@
     <div><h1>Your Topics</h1></div>
     <div id="topicsContainer"></div>
 
-    <!-- AI helps -->
     <script>
-      fetch("data/topics.json")
-        .then((res) => res.json())
-        .then((topics) => renderTopics(topics))
-        .catch((err) => console.error("Error loading topics:", err));
+      let topics = JSON.parse(localStorage.getItem("topics") || "[]");
 
-      function renderTopics(topics) {
+      function renderTopics() {
         const container = document.getElementById("topicsContainer");
         container.innerHTML = "";
 
@@ -41,28 +37,72 @@
 
           const header = document.createElement("div");
           header.className = "topic-header";
-          header.innerHTML = `<strong>${topic.name}</strong>`;
+
+          const renameInput = document.createElement("input");
+          renameInput.type = "text";
+          renameInput.value = topic.name;
+          renameInput.style.marginRight = "10px";
+
+          const saveRenameBtn = document.createElement("button");
+          saveRenameBtn.textContent = "Save";
+          saveRenameBtn.onclick = () => {
+            topics[index].name = renameInput.value.trim();
+            saveTopics();
+          };
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.textContent = "Delete";
+          deleteBtn.onclick = () => {
+            if (confirm(`Delete topic '${topic.name}'?`)) {
+              topics.splice(index, 1);
+              saveTopics();
+            }
+          };
+
+          header.appendChild(renameInput);
+          header.appendChild(saveRenameBtn);
+          header.appendChild(deleteBtn);
 
           const levels = document.createElement("ul");
-          topic.levels.forEach((level) => {
+          topic.levels.forEach((level, levelIndex) => {
             const li = document.createElement("li");
-            li.innerHTML = `<span style="background:${level.color};width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:5px;"></span> ${level.name}`;
+            li.innerHTML = `
+              <input type="text" value="${level.name}" onchange="updateLevelName(${index}, ${levelIndex}, this.value)">
+              <input type="color" value="${level.color}" onchange="updateLevelColor(${index}, ${levelIndex}, this.value)">
+            `;
             levels.appendChild(li);
           });
 
-          const actions = document.createElement("div");
-          actions.className = "topic-actions";
-          actions.innerHTML = `
-            <button disabled>Rename</button>
-            <button disabled>Delete</button>
-          `;
+          const addLevelBtn = document.createElement("button");
+          addLevelBtn.textContent = "+ Add Level";
+          addLevelBtn.onclick = () => {
+            topics[index].levels.push({ name: "New Level", color: "#cccccc" });
+            saveTopics();
+          };
 
           topicDiv.appendChild(header);
           topicDiv.appendChild(levels);
-          topicDiv.appendChild(actions);
+          topicDiv.appendChild(addLevelBtn);
           container.appendChild(topicDiv);
         });
       }
+
+      function updateLevelName(topicIndex, levelIndex, value) {
+        topics[topicIndex].levels[levelIndex].name = value.trim();
+        saveTopics();
+      }
+
+      function updateLevelColor(topicIndex, levelIndex, color) {
+        topics[topicIndex].levels[levelIndex].color = color;
+        saveTopics();
+      }
+
+      function saveTopics() {
+        localStorage.setItem("topics", JSON.stringify(topics));
+        renderTopics();
+      }
+
+      renderTopics();
     </script>
   </body>
 </html>

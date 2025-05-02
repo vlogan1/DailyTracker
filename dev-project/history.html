@@ -6,6 +6,7 @@
     <title>View History</title>
     <link rel="stylesheet" href="styles/common.css" />
     <link rel="stylesheet" href="styles/history.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <header>
@@ -22,48 +23,125 @@
     <div class="line"></div>
 
     <div><h1>View Your History</h1></div>
+
     <div id="historyContainer"></div>
 
     <!-- AI helps -->
     <script>
-      let topicsMap = {};
-
-      Promise.all([
-        fetch("data/topics.json").then((res) => res.json()),
-        fetch("data/records.json").then((res) => res.json()),
-      ])
-        .then(([topics, records]) => {
-          topics.forEach((topic) => {
-            topicsMap[topic.name] = {};
-            topic.levels.forEach((level) => {
-              topicsMap[topic.name][level.name] = level.color;
-            });
-          });
-          renderHistory(records);
-        })
-        .catch((err) => console.error("Error loading history:", err));
-
-      function renderHistory(records) {
-        const container = document.getElementById("historyContainer");
-
-        Object.entries(records).forEach(([date, entries]) => {
-          const section = document.createElement("div");
-          section.className = "history-day";
-          section.innerHTML = `<h3>${date}</h3>`;
-
-          entries.forEach((entry) => {
-            const color = topicsMap[entry.topic]?.[entry.level] || "#ccc";
-            section.innerHTML += `
-              <div class="history-entry">
-                <strong>${entry.topic}</strong>: 
-                <span class="level-badge" style="background-color: ${color}">${entry.level}</span>
-              </div>`;
-          });
-
-          container.appendChild(section);
-        });
-      }
+      const historyContainer = document.getElementById("historyContainer");
+      const records = JSON.parse(localStorage.getItem("records") || "{}");
       const topics = JSON.parse(localStorage.getItem("topics") || "[]");
+
+      // Step 1: Build a map of topic -> level -> color
+      const topicsMap = {};
+      topics.forEach((topic) => {
+        topicsMap[topic.name] = {};
+        topic.levels.forEach((level) => {
+          topicsMap[topic.name][level.name] = level.color;
+        });
+      });
+
+      // Step 2: Show record history by date
+      Object.keys(records)
+        .sort()
+        .reverse()
+        .forEach((date) => {
+          const entryBlock = document.createElement("div");
+          entryBlock.className = "history-day";
+          entryBlock.innerHTML = `<h3>${date}</h3>`;
+
+          records[date].forEach((entry) => {
+            const color = topicsMap[entry.topic]?.[entry.level] || "#ccc";
+            const row = document.createElement("div");
+            row.className = "history-entry";
+            row.innerHTML = `
+              <strong>${entry.topic}</strong>: 
+              <span class="level-badge" style="background-color:${color}">${entry.level}</span>
+            `;
+            entryBlock.appendChild(row);
+          });
+
+          historyContainer.appendChild(entryBlock);
+        });
+
+      // Step 3: Build chart data per topic
+      const topicChartData = {};
+      Object.values(records)
+        .flat()
+        .forEach((entry) => {
+          const topic = entry.topic;
+          const level = entry.level;
+          if (!topicChartData[topic]) {
+            topicChartData[topic] = {};
+          }
+          topicChartData[topic][level] =
+            (topicChartData[topic][level] || 0) + 1;
+        });
+
+      // Step 4: Create and draw a chart for each topic
+      Object.entries(topicChartData).forEach(([topicName, levelCounts], i) => {
+        const canvasId = `chart-${i}`;
+
+        const chartSection = document.createElement("div");
+        chartSection.style.marginTop = "40px";
+        chartSection.innerHTML = `
+          <h2 style="text-align:center;">${topicName} Level Distribution</h2>
+          <canvas id="${canvasId}" width="600" height="300"></canvas>
+        `;
+        historyContainer.prepend(chartSection);
+
+        // Get all defined levels for this topic from topics.json
+        const definedLevels =
+          topics.find((t) => t.name === topicName)?.levels || [];
+
+        const labels = definedLevels.map((l) => l.name);
+        const data = labels.map((levelName) => levelCounts[levelName] || 0);
+        const colors = definedLevels.map((l) => l.color || "#999");
+
+        new Chart(document.getElementById(canvasId), {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Level Frequency",
+                data: data,
+                backgroundColor: colors,
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              title: {
+                display: true,
+                text: `${topicName} Level Distribution`,
+                font: { size: 18, weight: "bold" },
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: "#333",
+                  font: { weight: "bold" },
+                },
+                grid: { display: false },
+              },
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1,
+                  color: "#333",
+                  font: { weight: "bold" },
+                },
+                grid: { color: "#ddd" },
+              },
+            },
+          },
+        });
+      });
     </script>
   </body>
 </html>
