@@ -18,4 +18,11 @@ nav{
 nav a{
     text-decoration: none;
     color:black;
+    padding:2px;
+    margin-left: 3px;
+    margin-right: 3px;
+}
+a:hover{
+    background-color: lightgray;
+    border-radius: 10%;
 }
