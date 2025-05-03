@@ -32,6 +32,9 @@
       const records = JSON.parse(localStorage.getItem("records") || "{}");
       const topics = JSON.parse(localStorage.getItem("topics") || "[]");
 
+      // Build a set of valid topic names
+      const validTopicNames = new Set(topics.map((t) => t.name));
+
       // Step 1: Build a map of topic -> level -> color
       const topicsMap = {};
       topics.forEach((topic) => {
@@ -41,16 +44,21 @@
         });
       });
 
-      // Step 2: Show record history by date
+      // Step 2: Show record history by date (only for valid topics)
       Object.keys(records)
         .sort()
         .reverse()
         .forEach((date) => {
+          const filteredEntries = records[date].filter((entry) =>
+            validTopicNames.has(entry.topic)
+          );
+          if (filteredEntries.length === 0) return;
+
           const entryBlock = document.createElement("div");
           entryBlock.className = "history-day";
           entryBlock.innerHTML = `<h3>${date}</h3>`;
 
-          records[date].forEach((entry) => {
+          filteredEntries.forEach((entry) => {
             const color = topicsMap[entry.topic]?.[entry.level] || "#ccc";
             const row = document.createElement("div");
             row.className = "history-entry";
@@ -64,10 +72,11 @@
           historyContainer.appendChild(entryBlock);
         });
 
-      // Step 3: Build chart data per topic
+      // Step 3: Build chart data per topic (only valid topics)
       const topicChartData = {};
       Object.values(records)
         .flat()
+        .filter((entry) => validTopicNames.has(entry.topic))
         .forEach((entry) => {
           const topic = entry.topic;
           const level = entry.level;
@@ -90,7 +99,6 @@
         `;
         historyContainer.prepend(chartSection);
 
-        // Get all defined levels for this topic from topics.json
         const definedLevels =
           topics.find((t) => t.name === topicName)?.levels || [];
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manage Your Topics</title>
     <link rel="stylesheet" href="styles/common.css" />
-    <link rel="stylesheet" href="styles/topics.css">
+    <link rel="stylesheet" href="styles/topics.css" />
   </head>
   <body>
     <header>
@@ -24,8 +24,18 @@
     <div><h1>Your Topics</h1></div>
     <div id="topicsContainer"></div>
 
+    <!-- AI helps -->
     <script>
       let topics = JSON.parse(localStorage.getItem("topics") || "[]");
+
+      function getRandomColor() {
+        const letters = "0123456789ABCDEF";
+        let color = "#";
+        for (let i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      }
 
       function renderTopics() {
         const container = document.getElementById("topicsContainer");
@@ -46,38 +56,108 @@
           const saveRenameBtn = document.createElement("button");
           saveRenameBtn.textContent = "Save";
           saveRenameBtn.onclick = () => {
-            topics[index].name = renameInput.value.trim();
-            saveTopics();
+            const updatedName = renameInput.value.trim();
+            const updatedLevels = [];
+            const levelInputs = topicDiv.querySelectorAll(".level-row");
+
+            let records = JSON.parse(localStorage.getItem("records") || "{}");
+
+            for (let li of levelInputs) {
+              const nameInput = li.querySelector("input[type='text']");
+              const colorInput = li.querySelector("input[type='color']");
+              const deleted = li.dataset.deleted === "true";
+
+              if (!nameInput || !colorInput || deleted) continue;
+              const name = nameInput.value.trim();
+              const color = colorInput.value;
+              if (name !== "") {
+                updatedLevels.push({ name, color });
+              }
+            }
+
+            // Remove deleted level records from storage
+            const originalLevels = topics[index].levels.map(l => l.name);
+            const updatedLevelNames = updatedLevels.map(l => l.name);
+            const deletedLevels = originalLevels.filter(name => !updatedLevelNames.includes(name));
+            const topicName = topics[index].name;
+            for (let date in records) {
+              records[date] = records[date].filter(
+                entry => !(entry.topic === topicName && deletedLevels.includes(entry.level))
+              );
+              if (records[date].length === 0) delete records[date];
+            }
+
+            topics[index] = {
+              name: updatedName,
+              levels: updatedLevels,
+            };
+            localStorage.setItem("topics", JSON.stringify(topics));
+            localStorage.setItem("records", JSON.stringify(records));
+            renderTopics();
           };
 
-          const deleteBtn = document.createElement("button");
-          deleteBtn.textContent = "Delete";
-          deleteBtn.onclick = () => {
+          const cancelBtn = document.createElement("button");
+          cancelBtn.textContent = "Cancel";
+          cancelBtn.onclick = () => renderTopics();
+
+          const deleteTopicBtn = document.createElement("button");
+          deleteTopicBtn.textContent = "Delete This Topic";
+          deleteTopicBtn.onclick = () => {
             if (confirm(`Delete topic '${topic.name}'?`)) {
+              const deletedTopicName = topics[index].name;
               topics.splice(index, 1);
-              saveTopics();
+
+              let records = JSON.parse(localStorage.getItem("records") || "{}");
+              for (let date in records) {
+                records[date] = records[date].filter(
+                  (entry) => entry.topic !== deletedTopicName
+                );
+                if (records[date].length === 0) {
+                  delete records[date];
+                }
+              }
+              localStorage.setItem("records", JSON.stringify(records));
+              localStorage.setItem("topics", JSON.stringify(topics));
+              renderTopics();
             }
           };
 
           header.appendChild(renameInput);
           header.appendChild(saveRenameBtn);
-          header.appendChild(deleteBtn);
+          header.appendChild(cancelBtn);
+          header.appendChild(deleteTopicBtn);
 
           const levels = document.createElement("ul");
-          topic.levels.forEach((level, levelIndex) => {
+          topic.levels.forEach((level) => {
             const li = document.createElement("li");
+            li.className = "level-row";
             li.innerHTML = `
-              <input type="text" value="${level.name}" onchange="updateLevelName(${index}, ${levelIndex}, this.value)">
-              <input type="color" value="${level.color}" onchange="updateLevelColor(${index}, ${levelIndex}, this.value)">
+              <input type="text" value="${level.name}">
+              <input type="color" value="${level.color}">
+              <button class="delete-level">Delete This Level</button>
             `;
+            li.querySelector(".delete-level").onclick = () => {
+              li.dataset.deleted = "true";
+              li.style.display = "none";
+            };
             levels.appendChild(li);
           });
 
           const addLevelBtn = document.createElement("button");
           addLevelBtn.textContent = "+ Add Level";
           addLevelBtn.onclick = () => {
-            topics[index].levels.push({ name: "New Level", color: "#cccccc" });
-            saveTopics();
+            const li = document.createElement("li");
+            li.className = "level-row";
+            li.innerHTML = `
+              <input type="text" value="">
+              <input type="color" value="${getRandomColor()}">
+              <button class="delete-level">Delete This Level</button>
+            `;
+            li.querySelector(".delete-level").onclick = () => {
+              li.dataset.deleted = "true";
+              li.style.display = "none";
+            };
+            levels.appendChild(li);
           };
 
           topicDiv.appendChild(header);
@@ -85,21 +165,6 @@
           topicDiv.appendChild(addLevelBtn);
           container.appendChild(topicDiv);
         });
-      }
-
-      function updateLevelName(topicIndex, levelIndex, value) {
-        topics[topicIndex].levels[levelIndex].name = value.trim();
-        saveTopics();
-      }
-
-      function updateLevelColor(topicIndex, levelIndex, color) {
-        topics[topicIndex].levels[levelIndex].color = color;
-        saveTopics();
-      }
-
-      function saveTopics() {
-        localStorage.setItem("topics", JSON.stringify(topics));
-        renderTopics();
       }
 
       renderTopics();

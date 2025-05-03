@@ -28,19 +28,7 @@
         <input type="text" id="topicName" maxlength="100" required />
       </div>
 
-      <div id="levelsContainer">
-        <div class="level">
-          <label>Level: </label>
-          <input
-            type="text"
-            maxlength="100"
-            placeholder="Level 1"
-            name="levelName1"
-          />
-          <span>Color:</span>
-          <input type="color" name="levelColor1" />
-        </div>
-      </div>
+      <div id="levelsContainer"></div>
 
       <div class="add-btn" id="addLevel">+</div>
       <button type="submit" class="submit-btn">CREATE</button>
@@ -58,19 +46,35 @@
       const form = document.getElementById("createForm");
       const levelsContainer = document.getElementById("levelsContainer");
       const addLevelBtn = document.getElementById("addLevel");
-      let levelCount = 1;
+      let levelCount = 0;
+      const usedColors = new Set();
 
-      addLevelBtn.addEventListener("click", () => {
+      function getRandomColor() {
+        let color;
+        do {
+          color =
+            "#" +
+            Math.floor(Math.random() * 16777215)
+              .toString(16)
+              .padStart(6, "0");
+        } while (usedColors.has(color));
+        usedColors.add(color);
+        return color;
+      }
+
+      function addLevel() {
         levelCount++;
         const levelDiv = document.createElement("div");
         levelDiv.className = "level";
         levelDiv.innerHTML = `
-            <label>Level:</label>
-            <input type="text" maxlength="100" placeholder="Level ${levelCount}" name="levelName${levelCount}" />
-            <span>Color:</span>
-            <input type="color" name="levelColor${levelCount}" />`;
+          <label>Level:</label>
+          <input type="text" maxlength="100" placeholder="Level ${levelCount}" name="levelName${levelCount}" />
+          <span>Color:</span>
+          <input type="color" name="levelColor${levelCount}" value="${getRandomColor()}" />`;
         levelsContainer.appendChild(levelDiv);
-      });
+      }
+
+      addLevelBtn.addEventListener("click", addLevel);
 
       form.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -94,13 +98,14 @@
         localStorage.setItem("topics", JSON.stringify(topics));
         alert("Topic created!");
         form.reset();
-        levelsContainer.innerHTML = ""; // clear levels
-        levelCount = 1;
-        addLevelBtn.click(); // add default level
+        levelsContainer.innerHTML = "";
+        levelCount = 0;
+        usedColors.clear();
+        addLevel();
       });
 
-      // Add initial level if not present
-      if (levelsContainer.children.length === 0) addLevelBtn.click();
+      // Add initial level on load
+      addLevel();
     </script>
   </body>
 </html>

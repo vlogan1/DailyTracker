@@ -27,16 +27,13 @@
       <div id="topicsContainer"></div>
       <button type="submit" class="submit-btn">Save</button>
     </form>
-    
+
     <!-- AI helps -->
     <script>
       const dateElement = document.getElementById("date");
       const today = new Date();
       const options = { year: "numeric", month: "long", day: "numeric" };
-      dateElement.textContent = `${today.toLocaleDateString(
-        undefined,
-        options
-      )}`;
+      dateElement.textContent = `${today.toLocaleDateString(undefined, options)}`;
 
       const container = document.getElementById("topicsContainer");
       const topics = JSON.parse(localStorage.getItem("topics") || "[]");
@@ -56,7 +53,7 @@
             label.className = "level-option";
             label.htmlFor = radioId;
             label.innerHTML = `
-              <input type="radio" name="topic-${topicIndex}" id="${radioId}" value="${level.name}" required />
+              <input type="radio" name="topic-${topicIndex}" id="${radioId}" value="${level.name}" />
               <span style="background-color: ${level.color}; width: 20px; height: 20px; display: inline-block; border-radius: 50%;"></span>
               <span>${level.name}</span>
             `;
@@ -74,22 +71,28 @@
         e.preventDefault();
         const formData = new FormData(e.target);
         const today = new Date().toISOString().split("T")[0];
-        const results = [];
 
+        const existingRecords = JSON.parse(localStorage.getItem("records") || "{}");
+        const todayRecords = existingRecords[today] || [];
+
+        // Convert existing records to a map
+        const todayMap = {};
+        todayRecords.forEach(entry => {
+          todayMap[entry.topic] = entry.level;
+        });
+
+        // Update or add entries
         topics.forEach((topic, topicIndex) => {
           const value = formData.get(`topic-${topicIndex}`);
           if (value) {
-            results.push({ topic: topic.name, level: value });
+            todayMap[topic.name] = value; // overwrite or add
           }
         });
 
-        const existingRecords = JSON.parse(
-          localStorage.getItem("records") || "{}"
-        );
-        existingRecords[today] = results;
-        localStorage.setItem("records", JSON.stringify(existingRecords));
+        // Convert map back to array
+        existingRecords[today] = Object.entries(todayMap).map(([topic, level]) => ({ topic, level }));
 
-        console.log("Saved:", existingRecords);
+        localStorage.setItem("records", JSON.stringify(existingRecords));
         alert("Record saved!");
         e.target.reset();
       });
