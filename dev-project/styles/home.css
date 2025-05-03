@@ -2,8 +2,9 @@
     display:flex;
     justify-content: center;
     align-items: center;
-    font-size: 5em;
+    font-size: 3em;
     letter-spacing: 0.01mm;
+    margin:20px;
 }
 .link-btn{
     display: flex;
@@ -14,10 +15,10 @@
 }
 .link{
     border: 1px solid black;
-    font-size: 40px;
+    font-size: 30px;
     border-radius: 50px;
     padding:20px;
-    width:500px;
+    width:300px;
     text-decoration: none;
     text-align: center;
 }

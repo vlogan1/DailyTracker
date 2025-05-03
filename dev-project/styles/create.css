@@ -6,12 +6,11 @@ form{
     flex-direction: column;
     border: 2px solid black;
     border-radius: 20px;
-    margin-top:30px;
-    margin-left: 100px;
-    margin-right: 100px;
-    padding-bottom: 25px;
+    margin:30px auto;
+    padding: 25px;
     letter-spacing: 0.25mm;
     width: 80%;
+    max-width:600px;
 }
 input{
     border-radius: 5px;
@@ -51,6 +50,7 @@ input[type="color"]{
     border-radius: 10px;
     cursor: pointer;
     background-color: white;
+    color: black;
 }
 .submit-btn:hover{
     background-color: lightgray;

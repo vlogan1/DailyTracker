@@ -6,12 +6,11 @@ form{
     flex-direction: column;
     border: 2px solid black;
     border-radius: 20px;
-    margin-top:30px;
-    margin-left: 100px;
-    margin-right: 100px;
-    padding-bottom: 25px;
+    margin:30px auto;
+    padding: 25px;
     letter-spacing: 0.25mm;
     width: 80%;
+    max-width:600px;
 }
 input{
     border-radius: 5px;
@@ -31,18 +30,6 @@ input[type="color"]{
     align-items: center;
     gap: 5px;
 }
-.add-btn{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 30px;
-    height: 30px;
-    margin: 20px auto;
-    font-size: 24px;
-    border: 2px solid black;
-    border-radius: 50%;
-    cursor: pointer;
-}
 .submit-btn{
     display: block;
     padding: 8px;
@@ -51,6 +38,8 @@ input[type="color"]{
     border-radius: 10px;
     cursor: pointer;
     background-color: white;
+    color: black;
+    margin-top:25px;
 }
 .submit-btn:hover{
     background-color: lightgray;
